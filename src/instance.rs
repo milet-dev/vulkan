@@ -7,7 +7,7 @@ use crate::physical_device::PhysicalDevice;
 pub struct Instance {
     #[allow(dead_code)]
     entry: ash::Entry,
-    handle: ash::Instance,
+    pub handle: ash::Instance,
 }
 
 impl Instance {
@@ -57,8 +57,24 @@ impl Instance {
                         .trim_end_matches('\0')
                         .to_owned()
                 };
-
-                PhysicalDevice { handle, name }
+                let queue_families: Vec<(u32, vk::QueueFamilyProperties)> = {
+                    let queue_families = unsafe {
+                        self.handle
+                            .get_physical_device_queue_family_properties(handle)
+                    };
+                    queue_families
+                        .into_iter()
+                        .enumerate()
+                        .map(|(index, queue_family_properties)| {
+                            (index as u32, queue_family_properties)
+                        })
+                        .collect()
+                };
+                PhysicalDevice {
+                    handle,
+                    name,
+                    queue_families,
+                }
             })
             .collect())
     }

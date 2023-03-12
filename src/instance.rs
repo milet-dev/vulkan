@@ -5,8 +5,7 @@ use ash::{extensions::khr, vk};
 use crate::physical_device::{PhysicalDevice, QueueFamily};
 
 pub struct Instance {
-    #[allow(dead_code)]
-    entry: ash::Entry,
+    pub entry: ash::Entry,
     pub handle: ash::Instance,
 }
 

@@ -9,15 +9,20 @@ pub struct Device {
 
 impl Device {
     pub fn new(instance: &Instance, physical_device: &PhysicalDevice) -> anyhow::Result<Device> {
-        let (queue_family_index, _queue_family_properties) = physical_device
+        let queue_family = physical_device
             .queue_families
             .iter()
             .copied()
-            .find(|(_, properties)| properties.queue_flags.contains(vk::QueueFlags::GRAPHICS))
+            .find(|queue_family| {
+                queue_family
+                    .properties
+                    .queue_flags
+                    .contains(vk::QueueFlags::GRAPHICS)
+            })
             .unwrap();
 
         let queue_create_info = vk::DeviceQueueCreateInfo::builder()
-            .queue_family_index(queue_family_index)
+            .queue_family_index(queue_family.index)
             .queue_priorities(&[1.0]);
 
         let swapchain_ext = khr::Swapchain::name();
@@ -32,7 +37,7 @@ impl Device {
             )?
         };
 
-        let queue = unsafe { handle.get_device_queue(queue_family_index, 0) };
+        let queue = unsafe { handle.get_device_queue(queue_family.index, 0) };
 
         Ok(Device { handle, queue })
     }

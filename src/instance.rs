@@ -2,7 +2,7 @@ use std::ffi::CString;
 
 use ash::{extensions::khr, vk};
 
-use crate::physical_device::PhysicalDevice;
+use crate::physical_device::{PhysicalDevice, QueueFamily};
 
 pub struct Instance {
     #[allow(dead_code)]
@@ -57,7 +57,7 @@ impl Instance {
                         .trim_end_matches('\0')
                         .to_owned()
                 };
-                let queue_families: Vec<(u32, vk::QueueFamilyProperties)> = {
+                let queue_families: Vec<QueueFamily> = {
                     let queue_families = unsafe {
                         self.handle
                             .get_physical_device_queue_family_properties(handle)
@@ -65,8 +65,9 @@ impl Instance {
                     queue_families
                         .into_iter()
                         .enumerate()
-                        .map(|(index, queue_family_properties)| {
-                            (index as u32, queue_family_properties)
+                        .map(|(index, queue_family_properties)| QueueFamily {
+                            index: index as u32,
+                            properties: queue_family_properties,
                         })
                         .collect()
                 };

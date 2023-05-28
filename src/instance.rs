@@ -4,6 +4,10 @@ use ash::{extensions::khr, vk};
 
 use crate::physical_device::{PhysicalDevice, QueueFamily};
 
+const APP_NAME: &str = "vulkan";
+const ENGINE_NAME: &str = "vulkan";
+const VALIDATION_LAYER: &str = "VK_LAYER_KHRONOS_validation";
+
 pub struct Instance {
     pub entry: ash::Entry,
     pub handle: ash::Instance,
@@ -13,13 +17,19 @@ impl Instance {
     pub fn new() -> anyhow::Result<Self> {
         let entry = unsafe { ash::Entry::load()? };
 
-        let app_name = CString::new("vulkan")?;
-        let engine_name = CString::new("vulkan")?;
+        let app_name = CString::new(APP_NAME)?;
+        let engine_name = CString::new(ENGINE_NAME)?;
+        let validation_layer = CString::new(VALIDATION_LAYER)?;
 
-        let validation_layer = CString::new("VK_LAYER_KHRONOS_validation")?;
+        let mut enabled_layers = Vec::new();
+        let mut enabled_extensions = vec![khr::Surface::name().as_ptr()];
 
-        let surface_ext = khr::Surface::name();
-        let win32_surface_ext = khr::Win32Surface::name();
+        if cfg!(debug_assertions) {
+            enabled_layers.push(validation_layer.as_ptr());
+        }
+        if cfg!(windows) {
+            enabled_extensions.push(khr::Win32Surface::name().as_ptr());
+        }
 
         let handle = unsafe {
             entry.create_instance(
@@ -32,8 +42,8 @@ impl Instance {
                             .engine_version(ash::vk::make_api_version(0, 1, 0, 0))
                             .api_version(vk::API_VERSION_1_2),
                     )
-                    .enabled_layer_names(std::slice::from_ref(&validation_layer.as_ptr()))
-                    .enabled_extension_names(&[surface_ext.as_ptr(), win32_surface_ext.as_ptr()]),
+                    .enabled_layer_names(enabled_layers.as_slice())
+                    .enabled_extension_names(enabled_extensions.as_slice()),
                 None,
             )?
         };

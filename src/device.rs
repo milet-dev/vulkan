@@ -1,3 +1,5 @@
+use std::slice;
+
 use ash::{extensions::khr, vk};
 
 use crate::{instance::Instance, physical_device::PhysicalDevice};
@@ -31,8 +33,8 @@ impl Device {
             instance.handle.create_device(
                 physical_device.handle,
                 &vk::DeviceCreateInfo::builder()
-                    .queue_create_infos(std::slice::from_ref(&queue_create_info))
-                    .enabled_extension_names(std::slice::from_ref(&swapchain_ext.as_ptr())),
+                    .queue_create_infos(slice::from_ref(&queue_create_info))
+                    .enabled_extension_names(slice::from_ref(&swapchain_ext.as_ptr())),
                 None,
             )?
         };

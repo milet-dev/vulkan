@@ -10,5 +10,6 @@ pub struct QueueFamily {
 pub struct PhysicalDevice {
     pub handle: vk::PhysicalDevice,
     pub name: String,
+    pub properties: vk::PhysicalDeviceProperties,
     pub queue_families: Vec<QueueFamily>,
 }

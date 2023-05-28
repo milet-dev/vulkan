@@ -83,6 +83,7 @@ impl Instance {
                 PhysicalDevice {
                     handle,
                     name,
+                    properties,
                     queue_families,
                 }
             })

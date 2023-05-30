@@ -4,6 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-anyhow = "1.0.69"
+anyhow = "1.0.71"
 ash = "0.37.2"
 raw-window-handle = "0.5.1"
+
+[dev-dependencies]
+anyhow = "1.0.71"
+winit = "0.28.6"
+shaderc = "0.8.2"
+
+[[example]]
+name = "triangle"

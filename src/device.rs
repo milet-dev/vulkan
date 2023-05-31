@@ -34,6 +34,15 @@ impl Device {
         let swapchain_ext = khr::Swapchain::name();
         let dynamic_rendering_ext = ash::extensions::khr::DynamicRendering::name();
         let enabled_extensions = [swapchain_ext.as_ptr(), dynamic_rendering_ext.as_ptr()];
+        let extensions_supported = check_supported_device_extensions(
+            instance,
+            physical_device,
+            &[
+                swapchain_ext.to_str().unwrap(),
+                dynamic_rendering_ext.to_str().unwrap(),
+            ],
+        );
+        debug_assert!(extensions_supported);
 
         let handle = unsafe {
             let mut dynamic_rendering =
@@ -67,4 +76,36 @@ impl Device {
             dynamic_rendering,
         })
     }
+}
+
+fn check_supported_device_extensions(
+    instance: &Instance,
+    physical_device: &PhysicalDevice,
+    required_extensions: &[&str],
+) -> bool {
+    let extensions = unsafe {
+        instance
+            .handle
+            .enumerate_device_extension_properties(physical_device.handle)
+            .unwrap()
+    };
+    let response: Vec<&str> = required_extensions
+        .iter()
+        .flat_map(|name| {
+            extensions
+                .iter()
+                .map(|ext| {
+                    let bytes: &[u8] = unsafe {
+                        std::slice::from_raw_parts(
+                            ext.extension_name.as_ptr().cast(),
+                            ext.extension_name.len(),
+                        )
+                    };
+                    unsafe { std::str::from_utf8_unchecked(bytes) }.trim_end_matches('\0')
+                })
+                .filter(|ext_name| name.eq(ext_name))
+                .collect::<Vec<&str>>()
+        })
+        .collect();
+    response.eq(required_extensions)
 }

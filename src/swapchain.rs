@@ -7,6 +7,7 @@ use crate::{
 pub struct Swapchain {
     pub handle: vk::SwapchainKHR,
     pub loader: khr::Swapchain,
+    pub image_views: Vec<vk::ImageView>,
 }
 
 impl Swapchain {
@@ -73,6 +74,41 @@ impl Swapchain {
             )?
         };
 
-        Ok(Self { handle, loader })
+        let image_views: Vec<vk::ImageView> = {
+            let images = unsafe { loader.get_swapchain_images(handle)? };
+            images
+                .iter()
+                .map(|&image| {
+                    let create_info = vk::ImageViewCreateInfo::builder()
+                        .view_type(vk::ImageViewType::TYPE_2D)
+                        .format(surface_format.format)
+                        .image(image)
+                        .subresource_range(
+                            vk::ImageSubresourceRange::builder()
+                                .base_mip_level(0)
+                                .level_count(1)
+                                .base_array_layer(0)
+                                .layer_count(1)
+                                .aspect_mask(vk::ImageAspectFlags::COLOR)
+                                .build(),
+                        )
+                        .components(
+                            vk::ComponentMapping::builder()
+                                .r(vk::ComponentSwizzle::R)
+                                .g(vk::ComponentSwizzle::G)
+                                .b(vk::ComponentSwizzle::B)
+                                .a(vk::ComponentSwizzle::A)
+                                .build(),
+                        );
+                    unsafe { device.handle.create_image_view(&create_info, None).unwrap() }
+                })
+                .collect()
+        };
+
+        Ok(Self {
+            handle,
+            loader,
+            image_views,
+        })
     }
 }

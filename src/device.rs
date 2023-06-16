@@ -5,7 +5,7 @@ use ash::{
     vk,
 };
 
-use crate::{instance::Instance, physical_device::PhysicalDevice};
+use crate::{instance::Instance, physical_device::PhysicalDevice, surface::Surface};
 
 pub struct Device {
     pub handle: ash::Device,
@@ -14,16 +14,31 @@ pub struct Device {
 }
 
 impl Device {
-    pub fn new(instance: &Instance, physical_device: &PhysicalDevice) -> anyhow::Result<Device> {
+    pub fn new(
+        instance: &Instance,
+        surface: &Surface,
+        physical_device: &PhysicalDevice,
+    ) -> anyhow::Result<Device> {
         let queue_family = physical_device
             .queue_families
             .iter()
             .copied()
             .find(|queue_family| {
+                let supports_presentation = unsafe {
+                    surface
+                        .loader
+                        .get_physical_device_surface_support(
+                            physical_device.handle,
+                            queue_family.index,
+                            surface.handle,
+                        )
+                        .unwrap()
+                };
                 queue_family
                     .properties
                     .queue_flags
                     .contains(vk::QueueFlags::GRAPHICS)
+                    && supports_presentation
             })
             .unwrap();
 

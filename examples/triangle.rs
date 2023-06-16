@@ -21,7 +21,7 @@ fn initialize_vulkan(handle: &impl raw_window_handle::HasRawWindowHandle) -> any
                 .eq(&vk::PhysicalDeviceType::DISCRETE_GPU)
         })
         .unwrap();
-    let device = Device::new(&instance, &physical_device)?;
+    let device = Device::new(&instance, &surface, &physical_device)?;
     let swapchain = Swapchain::new(&instance, &surface, &physical_device, &device)?;
 
     Ok(())
